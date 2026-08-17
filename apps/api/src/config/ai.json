@@ -1,0 +1,46 @@
+{
+    "defaultProvider": "openai",
+    "providers": {
+      "openai": {
+        "name": "OpenAI (ChatGPT)",
+        "envKey": "OPENAI_API_KEY",
+        "models": ["gpt-4", "gpt-4-turbo", "gpt-3.5-turbo"],
+        "defaultModel": "gpt-3.5-turbo",
+        "maxTokens": 500,
+        "temperature": 0.8
+      },
+      "deepseek": {
+        "name": "DeepSeek",
+        "envKey": "DEEPSEEK_API_KEY",
+        "models": ["deepseek-chat", "deepseek-coder"],
+        "defaultModel": "deepseek-chat",
+        "maxTokens": 500,
+        "temperature": 0.8
+      },
+      "claude": {
+        "name": "Anthropic Claude",
+        "envKey": "ANTHROPIC_API_KEY",
+        "models": ["claude-3-opus-20240229", "claude-3-sonnet-20240229", "claude-3-haiku-20240307"],
+        "defaultModel": "claude-3-haiku-20240307",
+        "maxTokens": 500,
+        "temperature": 0.8
+      },
+      "groq": {
+        "name": "Groq",
+        "envKey": "GROQ_API_KEY",
+        "models": ["mixtral-8x7b-32768", "llama2-70b-4096", "gemma-7b-it"],
+        "defaultModel": "mixtral-8x7b-32768",
+        "maxTokens": 500,
+        "temperature": 0.8
+      }
+    },
+    "templates": {
+      "goal": "Crie uma notícia de jornal sobre este gol: {player} marcou aos {minute} minutos contra {team}. Tipo: {goalType}. Use tom emocionante e detalhes vívidos.",
+      "substitution": "Crie uma análise sobre a substituição: {playerIn} entrou no lugar de {playerOut} aos {minute} minutos. Motivo: {reason}. Descreva o impacto tático.",
+      "injury": "Crie um boletim médico sobre a lesão de {player}. Parte: {bodyPart}. Gravidade: {severity}. Contexto: {context}.",
+      "transfer": "Crie uma notícia de transferência: {player} foi transferido do {fromTeam} para o {toTeam} por {value} milhões. Tipo: {transferType}.",
+      "matchResult": "Crie um resumo da partida: {homeTeam} {homeGoals} x {awayGoals} {awayTeam}. Competição: {competition}.",
+      "playerAnalysis": "Crie uma análise do jogador {player}. Nota: {rating}. Gols: {goals}. Assistências: {assists}. Análise: {analysis}.",
+      "leagueStatus": "Crie um relatório da liga {league}. Líder: {leader}. Posição do time: {position}. Pontos: {points}. Observação: {note}."
+    }
+  }
