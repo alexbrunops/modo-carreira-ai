@@ -60,4 +60,7 @@ coverage/
 *.cert
 *.key
 EOF
+
+# Files
 start_mc.sh
+template_ai_text.txt
