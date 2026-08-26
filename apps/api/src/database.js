@@ -33,7 +33,7 @@ async function initDatabase() {
     await run(`
         CREATE TABLE IF NOT EXISTS careers (
             id TEXT PRIMARY KEY,
-            FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+            account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
             career_name TEXT NOT NULL,
             sport TEXT NOT NULL,
             game_name TEXT NOT NULL,
@@ -52,8 +52,8 @@ async function initDatabase() {
     await run(`
         CREATE TABLE IF NOT EXISTS football_managers (
             id TEXT PRIMARY KEY,
-            FOREIGN KEY (career_id) REFERENCES careers(id) ON DELETE CASCADE,
-            FOREIGN KEY (football_team_id) REFERENCES football_teams(id),
+            career_id INTEGER NOT NULL REFERENCES careers(id) ON DELETE CASCADE,
+            football_team_id INTEGER REFERENCES football_teams(id),
             name TEXT NOT NULL,
             nationality TEXT,
             age INTEGER NOT NULL,
@@ -70,8 +70,8 @@ async function initDatabase() {
     await run(`
         CREATE TABLE IF NOT EXISTS football_players (
             id TEXT PRIMARY KEY,
-            FOREIGN KEY (career_id) REFERENCES careers(id) ON DELETE CASCADE,
-            FOREIGN KEY (football_team_id) REFERENCES footbal_teams(id),
+            career_id INTEGER NOT NULL REFERENCES careers(id) ON DELETE CASCADE,
+            football_team_id INTEGER REFERENCES footbal_teams(id),
             name TEXT NOT NULL,
             nationality TEXT,
             age INTEGER NOT NULL,
@@ -106,8 +106,8 @@ async function initDatabase() {
     await run(`
         CREATE TABLE IF NOT EXISTS football_teams (
             id TEXT PRIMARY KEY,
-            FOREIGN KEY (career_id) REFERENCES careers(id) ON DELETE CASCADE,
-            FOREIGN KEY (football_manager_id) REFERENCES football_managers(id),
+            career_id INTEGER NOT NULL REFERENCES careers(id) ON DELETE CASCADE,
+            football_manager_id INTEGER REFERENCES football_managers(id),
             name TEXT NOT NULL,
             short_name TEXT,
             country TEXT NOT NULL,

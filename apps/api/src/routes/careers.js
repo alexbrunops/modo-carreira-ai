@@ -190,3 +190,130 @@ router.post('/', async(req, res) =>{
         res.status(500).json({ error: error.message });
     }
 });
+
+// ============================================
+// PUT /api/careers/:id
+// Atualizar career
+// ============================================
+router.put('/:id', async (req, res) => {
+    try {
+        const career = await Career.findById(req.params.id);
+
+        if (!career) {
+            return res.status(404).json({ error: 'Modo carreira não encontrado' });
+        }
+
+        // Verificar permissão
+        if (career.userId !== req.user?.id && !req.user?.isAdmin) {
+            return res.status(403).json({ error: 'Acesso negado' });
+        }
+
+        const {
+            name,
+            sport,
+            gameName,
+            gameVersion,
+            mode,
+            protagonistType,
+            protagonistId,
+            teamId,
+            currency,
+            language,
+            useRealData,
+            isActive
+        } = req.body;
+
+        // Atualizar campos
+        if (name !== undefined) career.name = name;
+        if (sport !== undefined) career.sport = sport;
+        if (gameName !== undefined) career.gameName = gameName;
+        if (gameVersion !== undefined) career.gameVersion = gameVersion;
+        if (mode !== undefined) career.mode = mode;
+        if (protagonistType !== undefined) career.protagonistType = protagonistType;
+        if (protagonistId !== undefined) career.protagonistId = protagonistId;
+        if (teamId !== undefined) career.teamId = teamId;
+        if (currency !== undefined) career.currency = currency;
+        if (language !== undefined) career.language = language;
+        if (useRealData !== undefined) career.useRealData = useRealData ? 1 : 0;
+        if (isActive !== undefined) career.isActive = isActive ? 1 : 0;
+
+        await career.save();
+
+        res.json({
+            message: 'Modo carreira atualizado com sucesso',
+            career
+        });
+
+    } catch (error) {
+        console.error('Erro ao atualizar career:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+// ============================================
+// DELETE /api/careers/:id
+// Deletar career
+// ============================================
+router.delete('/:id', async (req, res) => {
+    try {
+        const career = await Career.findById(req.params.id);
+
+        if (!career) {
+            return res.status(404).json({ error: 'Modo carreira não encontrado' });
+        }
+
+        // Verificar permissão
+        if (career.userId !== req.user?.id && !req.user?.isAdmin) {
+            return res.status(403).json({ error: 'Acesso negado' });
+        }
+
+        await career.delete();
+
+        // Se deletou a career ativa, ativar a mais recente
+        if (career.isActive) {
+            const activeCareers = await Career.findByUserId(career.userId, { activeOnly: true, limit: 1 });
+            if (activeCareers.length > 0) {
+                await activeCareers[0].setActive(true);
+            }
+        }
+
+        res.json({ 
+            message: 'Modo carreira deletado com sucesso',
+            deletedId: req.params.id
+        });
+
+    } catch (error) {
+        console.error('Erro ao deletar career:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+// ============================================
+// DELETE /api/careers/user/:userId
+// Deletar todas as careers de um usuário
+// ============================================
+router.delete('/user/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        // Verificar permissão
+        if (userId !== req.user?.id && !req.user?.isAdmin) {
+            return res.status(403).json({ error: 'Acesso negado' });
+        }
+
+        const count = await Career.countByUserId(userId);
+        const deleted = await Career.deleteByUserId(userId);
+
+        res.json({
+            message: `${deleted} modo(s) carreira deletado(s) com sucesso`,
+            deleted: deleted,
+            total: count
+        });
+
+    } catch (error) {
+        console.error('Erro ao deletar careers do usuário:', error);
+        res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+});
+
+module.exports = router;

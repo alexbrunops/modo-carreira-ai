@@ -58,14 +58,14 @@ export const EVENT_CONFIG = {
     initMatch: {
         id: 'initMatch',
         label: 'Início da Partida',
-        category: 'partida',
+        category: 'match',
         icon: '🏁',
         fields: [
             { name: 'date', label: 'Data', type: 'date' },
-            { name: 'homeOrAway', label: 'Local do jogo', type: 'select', options: ['Em Casa', 'Fora'], required: true },
+            { name: 'homeOrAway', label: 'Local do jogo', type: 'select', options: ['Em Casa', 'Estádio Adversário'], required: true },
             { name: 'opposingTeam', label: 'Time Adversário', type: 'teamStatus' },
             { name: 'hour', label: 'Hora', type: 'text' },
-            { name: 'weather', label: 'Tempo', type: 'select', options: ['Limpo', 'Parcialmente Limpo', 'Nublado', 'Chuva'] },
+            { name: 'weather', label: 'Tempo', type: 'select', options: ['Limpo', 'Parcialmente Limpo', 'Nublado', 'Chuva', 'Neve'] },
             { name: 'competition', label: 'Competição', type: 'text', required: true },
             { name: 'round', label: 'Rodada', type: 'text' },
             { name: 'tatic', label: 'Tática', type: 'tatic' },
@@ -75,7 +75,7 @@ export const EVENT_CONFIG = {
     halfTime: {
         id: 'halfTime',
         label: 'Intervalo',
-        category: 'partida',
+        category: 'match',
         fields: [
             { name: 'homeScore', label: 'Placar Time da Casa', type: 'number', required: true, min: 0 },
             { name: 'awayScore', label: 'Placar Time Visitante', type: 'number', required: true, min: 0 },
@@ -91,7 +91,7 @@ export const EVENT_CONFIG = {
     endMatch: {
         id: 'endMatch',
         label: 'Fim da Partida',
-        category: 'partida',
+        category: 'match',
         icon: '🏁',
         fields: [
             { name: 'homeScore', label: 'Placar Time da Casa', type: 'number', required: true, min: 0 },
@@ -109,34 +109,34 @@ export const EVENT_CONFIG = {
     goal: {
         id: 'goal',
         label: 'Gol',
-        category: 'partida',
+        category: 'match',
         icon: '⚽',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
-            { name: 'player', label: 'Jogador', type: 'text', required: true, placeholder: 'Nome do jogador' },
+            { name: 'player', label: 'Jogador', type: 'text', placeholder: 'Nome do jogador' },
             { name: 'team', label: 'Time', type: 'select', options: [], required: true },
             { name: 'assist', label: 'Assistência', type: 'text', placeholder: 'Quem deu a assistência?' },
-            { name: 'goalType', label: 'Tipo de Gol', type: 'select', options: ['Cabeça', 'Chute', 'Falta', 'Pênalti', 'Bicicleta', 'Voleio', 'Outro'], default: 'Chute' },
+            { name: 'goalType', label: 'Tipo de Gol', type: 'select', options: ['Cabeça', 'Chute', 'Falta', 'Pênalti', 'Bicicleta', 'Voleio', 'Gol Contra', 'Outro'] },
             { name: 'context', label: 'Contexto', type: 'textarea', placeholder: 'Descreva o momento do jogo...' }
         ]
     },
     substitution: {
         id: 'substitution',
         label: 'Substituição',
-        category: 'partida',
+        category: 'match',
         icon: '🔄',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
             { name: 'playerOut', label: 'Jogador Saiu', type: 'text', required: true },
             { name: 'playerIn', label: 'Jogador Entrou', type: 'text', required: true },
             { name: 'team', label: 'Time', type: 'select', options: [], required: true },
-            { name: 'reason', label: 'Motivo', type: 'select', options: ['Tática', 'Lesão', 'Físico', 'Técnico', 'Outro'] }
+            { name: 'reason', label: 'Motivo', type: 'select', options: ['Rotação', 'Tática', 'Lesão', 'Físico', 'Técnico', 'Outro'] }
         ]
     },
     yellowCard: {
         id: 'yellowCard',
         label: 'Cartão Amarelo',
-        category: 'partida',
+        category: 'match',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
             { name: 'player', label: 'Jogador', type: 'text', required: true },
@@ -147,18 +147,18 @@ export const EVENT_CONFIG = {
     redCard: {
         id: 'redCard',
         label: 'Cartão Vermelho',
-        category: 'partida',
+        category: 'match',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
             { name: 'player', label: 'Jogador', type: 'text', required: true },
             { name: 'team', label: 'Time', type: 'select', options: [], required: true },
-            { name: 'reason', label: 'Motivo', type: 'select', options: ['Falta Grave', 'Segundo Amarelo', 'Conduta Violenta', 'Mão na Bola', 'Outro'] }
+            { name: 'reason', label: 'Motivo', type: 'select', options: ['Falta Grave', 'Falta Matando Contra Ataque', 'Segundo Amarelo', 'Conduta Violenta', 'Mão na Bola', 'Outro'] }
         ]
     },
     penalty: {
         id: 'penalty',
         label: 'Pênalti',
-        category: 'partida',
+        category: 'match',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
             { name: 'player', label: 'Jogador que sofreu', type: 'text', required: true },
@@ -170,7 +170,7 @@ export const EVENT_CONFIG = {
     highlight: {
         id: 'highlight',
         label: 'Lance Importante',
-        category: 'partida',
+        category: 'match',
         icon: '🎯',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
@@ -251,7 +251,10 @@ export const EVENT_CONFIG = {
             { name: 'fromTeam', label: 'Time de Origem', type: 'text' },
             { name: 'toTeam', label: 'Time Interessado', type: 'text', required: true },
             { name: 'value', label: 'Valor da proposta', type: 'text' },
-            { name: 'transferType', label: 'Tipo de Transferência', type: 'select', options: ['Compra', 'Empréstimo', 'Empréstimo com Opção de Compra'] },
+            { name: 'playerForTrade', label: 'Jogador Para Troca', type: 'text' },
+            { name: 'salesClause', label: 'Cláusula de Venda (%)', type: 'number', min: 0, max: 100 },
+            { name: 'transferType', label: 'Tipo de Transferência', type: 'select', options: ['Compra', 'Venda', 'Empréstimo', 'Empréstimo com Opção de Compra'] },
+            { name: 'contractYears', label: 'Duração do Contrato (anos)', type: 'number', min: 0, max: 2 },
             { name: 'others', label: 'Outros detalhes', type: 'textarea', placeholder: 'Outros detalhes que você julgue relevante...' }
         ]
     },
@@ -266,7 +269,8 @@ export const EVENT_CONFIG = {
             { name: 'fromTeam', label: 'Time de Origem', type: 'text' },
             { name: 'toTeam', label: 'Time de Destino', type: 'text', required: true },
             { name: 'value', label: 'Valor da transferência', type: 'text' },
-            { name: 'transferType', label: 'Tipo', type: 'select', options: ['Compra', 'Empréstimo', 'Empréstimo c/ Opção de Compra', 'Transferência Livre'] },
+            { name: 'playerForTrade', label: 'Jogador Para Troca', type: 'text' },
+            { name: 'transferType', label: 'Tipo', type: 'select', options: ['Compra', 'Venda', 'Empréstimo', 'Empréstimo c/ Opção de Compra', 'Transferência Livre', 'Renovação'] },
             { name: 'contractYears', label: 'Duração do Contrato (anos)', type: 'number', min: 0, max: 5 },
             { name: 'function', label: 'Função', type: 'select', options: ['Crucial', 'Importante', 'Rodízio', 'Esporádico', 'Promessa'] },
             { name: 'releaseClause', label: 'Multa de Rescição', type: 'text' },
@@ -276,7 +280,8 @@ export const EVENT_CONFIG = {
             { name: 'bonus', label: 'Bônus', type: 'text' },
             { name: 'bonusCondition', label: 'Condição do Bônus', type: 'text', placeholder: 'Ex: Número de gols, partidas, títulos...' },
             { name: 'transferGrade', label: 'Nota da Transferência', type: 'select', options: ['A', 'B', 'C', 'D', 'E', 'F'] },
-            { name: 'gradeReason', label: 'Motivo para a nota', type: 'text' }
+            { name: 'gradeReason', label: 'Motivo para a nota', type: 'text' },
+            { name: 'others', label: 'Outros detalhes', type: 'textarea', placeholder: 'Outros detalhes que você julgue relevante...' }
         ]
     },
     retirement: {
@@ -327,8 +332,8 @@ export const EVENT_CONFIG = {
         category: 'financeiro',
         icon: '💰',
         fields: [
-            { name: 'income', label: 'Receita', type: 'number', required: true },
-            { name: 'expenses', label: 'Despesas', type: 'number', required: true }
+            { name: 'income', label: 'Receita', type: 'text', required: true },
+            { name: 'expenses', label: 'Despesas', type: 'text', required: true }
         ]
     },
     talk: {
@@ -365,6 +370,37 @@ export const EVENT_CONFIG = {
             { name: 'competition', label: 'Competição', type: 'text', required: true },
             { name: 'round', label: 'Rodada', type: 'text' },
             { name: 'rows', label: 'Linhas da Tabela', type: 'tableRows' }
+        ]
+    },
+    award: {
+        id: 'award',
+        label: 'Premiação',
+        category: 'liga',
+        fields: [
+            { name: 'date', label: 'Data', type: 'date' },
+            { name: 'award', label: 'Premiação', type: 'text', required: true }
+        ]
+    },
+    news: {
+        id: 'news',
+        label: 'Notícias',
+        category: 'liga',
+        fields: [
+            { name: 'date', label: 'Data', type: 'date' },
+            { name: 'news', label: 'Notícia', type: 'textarea', required: true }
+        ]
+    },
+    endOfContract: {
+        id: 'endOfContract',
+        label: 'Fim de Contrato',
+        category: 'jogador',
+        fields: [
+            { name: 'playerName', label: 'Nome do Jogador', type: 'text', required: true },
+            { name: 'playerAge', label: 'Idade do Jogador', type: 'number', min: 15, max: 99 },
+            { name: 'playerOVR', label: 'OVR do Jogador', type: 'number', min: 0, max: 99 },
+            { name: 'playerMarketValue', label: 'Valor de Mercado', type: 'text' },
+            { name: 'playerSalary', label: 'Salário', type: 'text' },
+            { name: 'monthOfContract', label: 'Duração do contrato', type: 'number', min: 1, max: 12, required: true }
         ]
     }
 };

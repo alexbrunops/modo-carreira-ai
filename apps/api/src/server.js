@@ -7,6 +7,7 @@ const playerRoutes = require('./routes/players');
 const managerRoutes = require('./routes/managers');
 const aiRoutes = require('./routes/ai');
 const accountRoutes = require('./routes/accounts');
+const careerRoutes = require('./routes/careers');
 // const eventRoutes = require('./routes/events');
 // const leagueRoutes = require('./routes/leagues');
 
@@ -34,6 +35,7 @@ app.use('/api/players', playerRoutes);
 app.use('/api/managers', managerRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/accounts', accountRoutes);
+app.use('/api/careers', careerRoutes);
 // app.use('/api/events', eventRoutes);
 // app.use('/api/leagues', leagueRoutes);
 

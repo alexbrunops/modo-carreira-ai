@@ -4,6 +4,7 @@ import { ToggleSection } from '../components/ToogleSection';
 import { TYPES } from '../config/types';
 import { isTypeReference, extractNestedData, extractTableRowsData } from '../utils/formHelpers';
 import { useEvents } from '../hooks/useEvents';
+import { teamsApi } from '../api/client';
 
 function DynamicForm({ eventConfig, onSubmit }) {
     const [formData, setFormData] = useState({});
@@ -159,6 +160,10 @@ function DynamicForm({ eventConfig, onSubmit }) {
                     name={fieldName}
                 />
             );
+        }
+
+        if (field.type === 'number' && field.label === 'homeScore') {
+
         }
 
         return (

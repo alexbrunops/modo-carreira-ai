@@ -5,6 +5,7 @@ import { EVENT_CONFIG } from '../config/event-config';
 export function useEvents() {
     const [events, setEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [eventsToBeCopied, setEventsToBeCopied] = useState([]);
     // const [customE]
 
     useEffect(() => {
@@ -24,6 +25,9 @@ export function useEvents() {
     };
 
     const addEvents = (eventData) => {
+        // const newEventsToCopy = [eventData, ...eventsToBeCopied];
+        // setEventsToBeCopied(newEventsToCopy);
+
         const newEvent = {
             id: Date.now(),
             ...eventData,
@@ -52,7 +56,6 @@ export function useEvents() {
         }
 
         const data = {
-            // exportedAt: new Date().toISOString(),
             totalEvents: events.length,
             events: events
         };
@@ -60,16 +63,28 @@ export function useEvents() {
         return data;
     };
 
+    const copyToClipboard = () => {
+        if (events) {
+            const json = JSON.stringify(events);
+            
+            navigator.clipboard.writeText(json).then(() => {
+                alert('✅ JSON copiado para a área de transferência!');
+            }).catch(err => {
+                console.error('Erro ao copiar JSON:', err);
+                alert('❌ Falha ao copiar JSON!');
+            });
+        }
+    }
+
     return {
         events,
         selectedEvent,
         setSelectedEvent,
-        // customEvents,
-        // setCustomEvents,
         addEvents,
         removeEvent,
         clearAll,
         exportJSON,
+        copyToClipboard,
         eventConfig: EVENT_CONFIG
     };
 }
