@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+// import { CareerProvider, useCareer } from './contexts/CareerContext';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import { Routes, Route, useNavigate } from 'react-router-dom';

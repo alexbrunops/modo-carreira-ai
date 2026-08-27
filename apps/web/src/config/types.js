@@ -38,7 +38,9 @@ export const TYPES = {
         category: 'tatic',
         icon: '📋',
         fields: [
-            { name: 'formation', label: 'Formação', type: 'textarea', placeholder: 'Ex: 4-3-3 | GL | LE | ZAG | ZAG | LD | VOL | VOL | ME | MEI | MD | ATA | Reservas: ...' },
+            { name: 'formation', label: 'Formação', type: 'text', placeholder: 'Ex: 4-3-3, 4-2-3-1, 4-4-2 ...' },
+            { name: 'starter', label: 'Titulares', type: 'textarea' },
+            { name: 'subs', label: 'Reservas', type: 'textarea' },
             { name: 'style', label: 'Estilo de Jogo', type: 'select', options: ['Ofensivo', 'Defensivo', 'Equilibrado'] },
             { name: 'strategy', label: 'Estratégia', type: 'textarea', placeholder: 'Descreva a estratégia da equipe...' }
         ]

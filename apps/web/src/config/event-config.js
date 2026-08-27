@@ -113,7 +113,8 @@ export const EVENT_CONFIG = {
         icon: '⚽',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
-            { name: 'player', label: 'Jogador', type: 'text', placeholder: 'Nome do jogador' },
+            { name: 'player_text', label: 'Jogador', type: 'text', placeholder: 'Nome do jogador' },
+            { name: 'player', label: 'Jogador', type: 'select', options: [] },
             { name: 'team', label: 'Time', type: 'select', options: [], required: true },
             { name: 'assist', label: 'Assistência', type: 'text', placeholder: 'Quem deu a assistência?' },
             { name: 'goalType', label: 'Tipo de Gol', type: 'select', options: ['Cabeça', 'Chute', 'Falta', 'Pênalti', 'Bicicleta', 'Voleio', 'Gol Contra', 'Outro'] },
@@ -139,7 +140,8 @@ export const EVENT_CONFIG = {
         category: 'match',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
-            { name: 'player', label: 'Jogador', type: 'text', required: true },
+            { name: 'player_text', label: 'Jogador', type: 'text' },
+            { name: 'player', label: 'Jogador', type: 'select', options: [] },
             { name: 'team', label: 'Time', type: 'select', options: [], required: true },
             { name: 'reason', label: 'Motivo', type: 'text', placeholder: 'Por que recebeu o cartão?' }
         ]
@@ -150,7 +152,8 @@ export const EVENT_CONFIG = {
         category: 'match',
         fields: [
             { name: 'minute', label: 'Minuto', type: 'number', required: true, min: 0, max: 120 },
-            { name: 'player', label: 'Jogador', type: 'text', required: true },
+            { name: 'player_text', label: 'Jogador', type: 'text' },
+            { name: 'player', label: 'Jogador', type: 'select', options: [] },
             { name: 'team', label: 'Time', type: 'select', options: [], required: true },
             { name: 'reason', label: 'Motivo', type: 'select', options: ['Falta Grave', 'Falta Matando Contra Ataque', 'Segundo Amarelo', 'Conduta Violenta', 'Mão na Bola', 'Outro'] }
         ]

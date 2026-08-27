@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { EVENT_CONFIG } from '../config/event-config';
+import { useAuth } from '../contexts/AuthContext';
 
 
 export function useEvents() {
+    const { user } = useAuth();
     const [events, setEvents] = useState([]);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [eventsToBeCopied, setEventsToBeCopied] = useState([]);
@@ -65,6 +67,7 @@ export function useEvents() {
 
     const copyToClipboard = () => {
         if (events) {
+            persistData(events);
             const json = JSON.stringify(events);
             
             navigator.clipboard.writeText(json).then(() => {
@@ -72,6 +75,57 @@ export function useEvents() {
             }).catch(err => {
                 console.error('Erro ao copiar JSON:', err);
                 alert('❌ Falha ao copiar JSON!');
+            });
+        }
+    }
+
+    const persistData = (events) => {
+        if (events) {
+            events.map((e) => {
+                if (e.eventId === 'initCareerMode') {
+                    const career = e.data;
+                    localStorage.setItem(user.id + '_career', JSON.stringify(career));
+                }
+
+                if (e.eventId === 'initMatch') {
+                    const { opposingTeam } = e.data;
+                    const { name } = opposingTeam;
+                    const fileName = (e.eventId + name);
+
+                    localStorage.setItem(fileName, JSON.stringify(e.data));
+                    localStorage.setItem('match', fileName);
+                }
+
+                if (e.eventId === 'endMatch') {
+                    const fileName = localStorage.getItem('match');
+                    localStorage.removeItem(fileName);
+                    localStorage.setItem('match', '');
+                    // const matchData = localStorage.getItem(fileName);
+                    // if (matchData) {
+                    //     const data = JSON.parse(matchData);
+
+                    // }
+                }
+
+                if (e.eventId === 'playerStatus') {
+                    const { player } = e.data;
+                    const playerName = player.name;
+                    const fileName = user.id + '_teamPlayers';
+                    let teamPlayers = [];
+                    const players = localStorage.getItem(fileName);
+
+                    if (!players) {
+                        localStorage.setItem(fileName, teamPlayers);
+                    }
+
+                    let p = teamPlayers.filter(p => p.name === playerName);
+                    console.log(player);
+                    if (p.length === 0) {
+                        teamPlayers.push(player);
+                    }
+
+                    localStorage.setItem(fileName, JSON.stringify(teamPlayers));
+                }
             });
         }
     }

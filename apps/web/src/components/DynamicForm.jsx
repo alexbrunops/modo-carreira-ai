@@ -5,8 +5,10 @@ import { TYPES } from '../config/types';
 import { isTypeReference, extractNestedData, extractTableRowsData } from '../utils/formHelpers';
 import { useEvents } from '../hooks/useEvents';
 import { teamsApi } from '../api/client';
+import { useAuth } from '../contexts/AuthContext';
 
 function DynamicForm({ eventConfig, onSubmit }) {
+    const { user } = useAuth();
     const [formData, setFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [rowCount, setRowCount] = useState(5);
@@ -81,23 +83,32 @@ function DynamicForm({ eventConfig, onSubmit }) {
 
     const renderField = (field, prefix = '') => {
         const fieldName = prefix ? `${prefix}_${field.name}` : field.name;
-        const value = formData[fieldName] || '';
+        let value = formData[fieldName] || '';
+        const career = JSON.parse(localStorage.getItem(user.id + '_career'));
+        const teamName = career.team.teamName;
+        const fileName = localStorage.getItem('match');
 
         const handleFieldChange = (e) => {
             handleChange(fieldName, e.target.value);
         };
 
+        if (fileName && field.type === 'select' && field.name === 'player') {
+            const match = JSON.parse(localStorage.getItem(fileName));
+            if (match) {
+                const starters = match.tatic.starter.split('\n');
+                const subs = match.tatic.subs.split('\n');
+                field.options = (starters + ',' + subs).split(',');
+            }
+        }
+
         if (field.type === 'select') {
             // Loop events to find the event initMatch
-            events.map(e => {
-                console.log(e.eventId);
-                if (e.eventId === 'initMatch') {
-                    const matchData = e.data;
-                    if (field.name === 'team') {
-                        field.options = ['Palermo', matchData.opposingTeam.name];
-                    }
+            if (fileName && field.name === 'team') {
+                const match = JSON.parse(localStorage.getItem(fileName));
+                if (match) {
+                    field.options = [teamName, match.opposingTeam.name];
                 }
-            });
+            }
 
             return (
                 <div key={fieldName} className="field-group">
@@ -160,6 +171,10 @@ function DynamicForm({ eventConfig, onSubmit }) {
                     name={fieldName}
                 />
             );
+        }
+
+        if (field.type === 'text' && field.name === 'team') {
+            value = teamName;
         }
 
         if (field.type === 'number' && field.label === 'homeScore') {
