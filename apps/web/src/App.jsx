@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+// import { CareerProvider, useCareer } from './contexts/CareerContext';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import { Routes, Route, useNavigate } from 'react-router-dom';
@@ -15,12 +16,13 @@ function AppContent() {
     const { 
         events, 
         selectedEvent, 
-        setSelectedEvent, 
+        setSelectedEvent,
         eventConfig,
         addEvents,
         removeEvent,
         clearAll,
-        exportJSON
+        exportJSON,
+        copyToClipboard
     } = useEvents();
 
     // Se não estiver autenticado, mostrar login
@@ -92,23 +94,6 @@ function AppContent() {
         }
     }
 
-    const copyJSON = () => {
-        const data = exportJSON();
-        if (data) {
-            // oneline json copy to clipboard
-            
-
-            const json = JSON.stringify(data);
-            
-            navigator.clipboard.writeText(json).then(() => {
-                alert('✅ JSON copiado para a área de transferência!');
-            }).catch(err => {
-                console.error('Erro ao copiar JSON:', err);
-                alert('❌ Falha ao copiar JSON!');
-            });
-        }
-    }
-
     return (
         <div className="app">
             <header>
@@ -118,7 +103,7 @@ function AppContent() {
                 </div>
                 <div className="header-actions">
                     <span className="counter">{events.length} eventos</span>
-                    <button onClick={copyJSON} className="btn-export">📥 Copiar</button>
+                    <button onClick={copyToClipboard} className="btn-export">📥 Copiar</button>
                     <button onClick={clearAll} className="btn-clear">🗑️ Limpar</button>
                     
                     {/* Botão de perfil do usuário */}
@@ -163,11 +148,9 @@ function AppContent() {
                         <DynamicForm
                             eventConfig={allEvents[selectedEvent]}
                             onSubmit={(data) => {
-                                addEvent({
+                                addEvents({
                                     eventId: selectedEvent,
                                     eventLabel: allEvents[selectedEvent].label,
-                                    eventIcon: allEvents[selectedEvent].icon || '📌',
-                                    category: allEvents[selectedEvent].category,
                                     data: data
                                 });
                             }}

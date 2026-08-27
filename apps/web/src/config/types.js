@@ -9,6 +9,7 @@ export const TYPES = {
             { name: 'name', label: 'Nome', type: 'text', required: true },
             { name: 'age', label: 'Idade', type: 'number', required: true, min: 15, max: 50 },
             { name: 'country', label: 'País de Origem', type: 'text' },
+            { name: 'shirtNumber', label: '# da Camisa', type: 'number' },
             { name: 'overall', label: 'Overall', type: 'number', min: 0, max: 100 },
             { name: 'status', label: 'Status', type: 'text' },
             { name: 'potential', label: 'Potencial', type: 'text' },
@@ -19,7 +20,7 @@ export const TYPES = {
             { name: 'contractYears', label: 'Duração do Contrato (anos)', type: 'number', min: 0 },
             { name: 'fine', label: 'Multa Rescisória', type: 'text', min: 0 },
             { name: 'function', label: 'Função', type: 'select', options: ['Crucial', 'Importante', 'Rodízio', 'Esporádico', 'Promessa'] },
-            { name: 'patch', label: 'Fase', type: 'select', options: ['Ótima', 'Boa', 'Regular', 'Péssima'] },
+            { name: 'patch', label: 'Fase', type: 'select', options: ['Ótima', 'Boa', 'Regular', 'Ruim', 'Péssima'] },
             { name: 'availability', label: 'Disponibilidade', type: 'select', options: ['Pode Jogar', 'Contundido'] },
             { name: 'transfer', label: 'Transferência', type: 'select', options: ['Lista de Empréstimo', 'Lista de Transferência', 'Bloquear Propostas'] },
             { name: 'conditioning', label: 'Preparo Físico', type: 'number', min: 0, max: 100 },
@@ -37,7 +38,9 @@ export const TYPES = {
         category: 'tatic',
         icon: '📋',
         fields: [
-            { name: 'formation', label: 'Formação', type: 'textarea', placeholder: 'Ex: 4-3-3 | GL | LE | ZAG | ZAG | LD | VOL | VOL | ME | MEI | MD | ATA | Reservas: ...' },
+            { name: 'formation', label: 'Formação', type: 'text', placeholder: 'Ex: 4-3-3, 4-2-3-1, 4-4-2 ...' },
+            { name: 'starter', label: 'Titulares', type: 'textarea' },
+            { name: 'subs', label: 'Reservas', type: 'textarea' },
             { name: 'style', label: 'Estilo de Jogo', type: 'select', options: ['Ofensivo', 'Defensivo', 'Equilibrado'] },
             { name: 'strategy', label: 'Estratégia', type: 'textarea', placeholder: 'Descreva a estratégia da equipe...' }
         ]
@@ -80,8 +83,8 @@ export const TYPES = {
             { name: 'teamName', label: 'Nome do Time', type: 'text', required: true },
             { name: 'teamLeague', label: 'Liga', type: 'text', required: true },
             { name: 'teamStadium', label: 'Estádio', type: 'text' },
-            { name: 'teamValue', label: 'Valor do Time', type: 'number' },
-            { name: 'budget', label: 'Verba Para Transferência', type: 'number' }
+            { name: 'teamValue', label: 'Valor do Time', type: 'text' },
+            { name: 'budget', label: 'Verba Para Transferência', type: 'text' }
         ]
     }
 }

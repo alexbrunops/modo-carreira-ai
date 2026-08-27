@@ -80,6 +80,15 @@ export const accountsApi = {
     delete: (id) => api.delete(`/accounts/${id}`),
 };
 
+// Career ednpoints
+export const careersApi = {
+    getById: (id) => api.get(`/careers/${id}`),
+    getByAccount: (accountId) => api.get(`/careers/account/${accountId}`),
+    create: (data) => api.post('/careers/', data),
+    update: (id, data) => api.put(`/careers/${id}`, data),
+    delete: (id) => api.delete(`/careers/${id}`)
+};
+
 // // Events
 // export const eventsApi = {
 //     getAll: (params) => api.get('/events', { params }),
