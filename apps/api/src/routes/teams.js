@@ -1,101 +1,91 @@
 const express = require('express');
 const router = express.Router();
-const { db, run, get, all, generateId } = require('../database');
+const { pick, insertRow, updateRow, missingFields, get, all, run } = require('./lib/crud');
 
-// GET - Listar todos os times
+// Tabela: football_teams (ver database.js)
+const FIELDS = ['career_id', 'football_manager_id', 'name', 'short_name', 'country', 'league', 'value', 'transfer_budget', 'salary_budget', 'formation', 'games_played', 'wins', 'draws', 'losses', 'goals_for', 'goals_against'];
+const REQUIRED = ['career_id', 'name', 'country'];
+const SELECT = `SELECT x.*, m.name AS manager_name FROM football_teams x LEFT JOIN football_managers m ON x.football_manager_id = m.id`;
+
+// GET - Listar (filtros opcionais: career_id)
 router.get('/', async (req, res) => {
     try {
-        const teams = await all(`
-            SELECT t.*, m.name as manager_name 
-            FROM teams t
-            LEFT JOIN managers m ON t.manager_id = m.id
-            ORDER BY t.name
-        `);
-        res.json(teams);
+        const where = [];
+        const params = [];
+        for (const filter of ['career_id']) {
+            if (req.query[filter]) {
+                where.push(`x.${filter} = ?`);
+                params.push(req.query[filter]);
+            }
+        }
+        const rows = await all(
+            `${SELECT} ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY x.name`,
+            params
+        );
+        res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// GET - Buscar time por ID
-// router.get('/:id', async (req, res) => {
-//     try {
-//         const team = await get(`
-//             SELECT t.*, m.name as manager_name 
-//             FROM teams t
-//             LEFT JOIN managers m ON t.manager_id = m.id
-//             WHERE t.id = ?
-//         `, [req.params.id]);
-        
-//         if (!team) {
-//             return res.status(404).json({ error: 'Time não encontrado' });
-//         }
-//         res.json(team);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-
-// GET - Buscar time por nome
-router.get('/:name', async (req, res) => {
+// GET - Buscar por nome
+// (precisa vir antes de /:id, senão o Express nunca chega aqui)
+router.get('/search/:name', async (req, res) => {
     try {
-        const teams = await all(`
-            SELECT t.*, m.name as manager_name 
-            FROM teams t
-            LEFT JOIN managers m ON t.manager_id = m.id
-            WHERE t.name LIKE ?
-            ORDER BY t.name
-        `, [`%${req.params.name}%`]);
-        
-        res.json(teams);
+        const rows = await all(`${SELECT} WHERE x.name LIKE ? ORDER BY x.name`, [`%${req.params.name}%`]);
+        res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// POST - Criar novo time
-router.post('/', async (req, res) => {
+// GET - Buscar por ID
+router.get('/:id', async (req, res) => {
     try {
-        const { name, country, league, stadium, capacity, manager_id } = req.body;
-        const id = generateId();
-        
-        await run(`
-            INSERT INTO teams (id, name, country, league, stadium, capacity, manager_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        `, [id, name, country, league, stadium, capacity, manager_id || null]);
-        
-        const team = await get('SELECT * FROM teams WHERE id = ?', [id]);
-        res.status(201).json(team);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// PUT - Atualizar time
-router.put('/:id', async (req, res) => {
-    try {
-        const { name, country, league, stadium, capacity, manager_id } = req.body;
-        
-        await run(`
-            UPDATE teams 
-            SET name = ?, country = ?, league = ?, stadium = ?, capacity = ?, manager_id = ?, updated_at = datetime('now')
-            WHERE id = ?
-        `, [name, country, league, stadium, capacity, manager_id || null, req.params.id]);
-        
-        const team = await get('SELECT * FROM teams WHERE id = ?', [req.params.id]);
-        if (!team) {
+        const row = await get(`${SELECT} WHERE x.id = ?`, [req.params.id]);
+        if (!row) {
             return res.status(404).json({ error: 'Time não encontrado' });
         }
-        res.json(team);
+        res.json(row);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// DELETE - Remover time
+// POST - Criar
+router.post('/', async (req, res) => {
+    try {
+        const missing = missingFields(req.body, REQUIRED);
+        if (missing.length > 0) {
+            return res.status(400).json({ error: `Campos obrigatórios: ${missing.join(', ')}` });
+        }
+        const id = await insertRow('football_teams', pick(req.body, FIELDS));
+        const row = await get(`${SELECT} WHERE x.id = ?`, [id]);
+        res.status(201).json(row);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// PUT - Atualizar (só os campos enviados)
+router.put('/:id', async (req, res) => {
+    try {
+        const updates = pick(req.body, FIELDS.filter(f => f !== 'career_id'));
+        const found = await updateRow('football_teams', req.params.id, updates);
+        if (!found) {
+            return res.status(404).json({ error: 'Time não encontrado' });
+        }
+        const row = await get(`${SELECT} WHERE x.id = ?`, [req.params.id]);
+        res.json(row);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// DELETE - Remover
 router.delete('/:id', async (req, res) => {
     try {
-        const result = await run('DELETE FROM teams WHERE id = ?', [req.params.id]);
+        const result = await run('DELETE FROM football_teams WHERE id = ?', [req.params.id]);
         if (result.changes === 0) {
             return res.status(404).json({ error: 'Time não encontrado' });
         }

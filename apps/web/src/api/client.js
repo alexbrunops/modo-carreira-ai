@@ -13,6 +13,10 @@ const api = axios.create({
 // Interceptor para log
 api.interceptors.request.use(
     (config) => {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         console.log(`📤 ${config.method.toUpperCase()} ${config.url}`);
         return config;
     },
@@ -37,8 +41,8 @@ api.interceptors.response.use(
 // Teams
 export const teamsApi = {
     getAll: () => api.get('/teams'),
-    // getById: (id) => api.get(`/teams/${id}`),
-    getByName: (name) => api.get(`/teams/${name}`),
+    getById: (id) => api.get(`/teams/${id}`),
+    getByName: (name) => api.get(`/teams/search/${encodeURIComponent(name)}`),
     create: (data) => api.post('/teams', data),
     update: (id, data) => api.put(`/teams/${id}`, data),
     delete: (id) => api.delete(`/teams/${id}`),
@@ -47,8 +51,8 @@ export const teamsApi = {
 // Players
 export const playersApi = {
     getAll: (params) => api.get('/players', { params }),
-    // getById: (id) => api.get(`/players/${id}`),
-    getByName: (name) => api.get(`/players/${name}`),
+    getById: (id) => api.get(`/players/${id}`),
+    getByName: (name) => api.get(`/players/search/${encodeURIComponent(name)}`),
     create: (data) => api.post('/players', data),
     update: (id, data) => api.put(`/players/${id}`, data),
     delete: (id) => api.delete(`/players/${id}`),
@@ -75,7 +79,7 @@ export const accountsApi = {
     register: (data) => api.post('/accounts/register', data),
     login: (data) => api.post(`/accounts/login`, data),
     getProfile: () => api.get('/accounts/profile'),
-    updateProfile: (data) => api.put('/accounts/profile', data),
+    update: (id, data) => api.put(`/accounts/${id}`, data),
     changePassword: (id, data) => api.put(`/accounts/${id}/change-password`, data),
     delete: (id) => api.delete(`/accounts/${id}`),
 };

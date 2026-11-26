@@ -1,62 +1,50 @@
-const { db, run, get, all, generateId } = require('../database');
+const { run, get, generateId } = require('../database');
 
+// Colunas da tabela "football_teams" (ver database.js)
 class FootballTeam {
-    constructor(data) {
-        this.id = generateId();
-        this.careerId = data.careerId;
-        this.footballManagerId = data.footballManagerId || null;
+    constructor(data = {}) {
+        this.id = data.id || generateId();
+        this.careerId = data.career_id || data.careerId;
+        this.footballManagerId = data.football_manager_id || data.footballManagerId || null;
         this.name = data.name;
-        this.shortName = data.shortName || null;
+        this.shortName = data.short_name || data.shortName || null;
         this.country = data.country;
         this.league = data.league || null;
         this.value = data.value || null;
-        this.transferBudget = data.transferBudget || null;
-        this.salaryBudget = data.salaryBudget || null;
+        this.transferBudget = data.transfer_budget || data.transferBudget || null;
+        this.salaryBudget = data.salary_budget || data.salaryBudget || null;
         this.formation = data.formation || null;
-        this.gamesPlayed = data.gamesPlayed || null;
-        this.wins = data.wins || null;
-        this.draws = data.draws || null;
-        this.losses = data.losses || null;
-        this.goalsFor = data.goalsFor || null;
-        this.goalsAgainst = data.goalsAgainst || null;
+        this.gamesPlayed = data.games_played || data.gamesPlayed || 0;
+        this.wins = data.wins || 0;
+        this.draws = data.draws || 0;
+        this.losses = data.losses || 0;
+        this.goalsFor = data.goals_for || data.goalsFor || 0;
+        this.goalsAgainst = data.goals_against || data.goalsAgainst || 0;
+        this.createdAt = data.created_at || data.createdAt || null;
+        this.updatedAt = data.updated_at || data.updatedAt || null;
     }
 
     async save() {
-        const now = new Date().toISOString();
-        this.updatedAt = now();
+        this.updatedAt = new Date().toISOString();
 
-        const existing = await this.existFootballTeam(this.id);
-
+        const existing = await get('SELECT id FROM football_teams WHERE id = ?', [this.id]);
         if (existing) {
-            this.update();
+            await this.update();
         } else {
-            this.insert();
+            await this.insert();
         }
 
         return this;
     }
 
-    async existFootballManager(id) {
-        const data = await get(`SELECT id FROM football_teams WHERE id = ?`, [id]);
-        return data;
-    }
-
-    async getFootballTeamById(id) {
-        const data = await get(`
-            SELECT *
-            FROM football_teams ft
-            WHERE ft.id = ?
-        `, [this.id]);
-    }
-
     async insert() {
-        const now = new Date().toISOString();
         await run(`
             INSERT INTO football_teams (
-                id, career_id, football_manager_id, name, short_name, country, league, value, transfer_budget, salary_budget, formation, games_played, wins, draws, losses, goals_for, goals_against
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `,[
+                id, career_id, football_manager_id, name, short_name, country, league,
+                value, transfer_budget, salary_budget, formation,
+                games_played, wins, draws, losses, goals_for, goals_against
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
             this.id,
             this.careerId,
             this.footballManagerId,
@@ -80,6 +68,10 @@ class FootballTeam {
     async update() {
         await run(`
             UPDATE football_teams SET
+                football_manager_id = ?,
+                name = ?,
+                short_name = ?,
+                country = ?,
                 league = ?,
                 value = ?,
                 transfer_budget = ?,
@@ -94,6 +86,10 @@ class FootballTeam {
                 updated_at = ?
             WHERE id = ?
         `, [
+            this.footballManagerId,
+            this.name,
+            this.shortName,
+            this.country,
             this.league,
             this.value,
             this.transferBudget,
@@ -109,4 +105,11 @@ class FootballTeam {
             this.id
         ]);
     }
+
+    static async findById(id) {
+        const data = await get('SELECT * FROM football_teams WHERE id = ?', [id]);
+        return data ? new FootballTeam(data) : null;
+    }
 }
+
+module.exports = FootballTeam;
