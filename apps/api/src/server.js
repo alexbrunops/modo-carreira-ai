@@ -1,17 +1,16 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const { initDatabase } = require('./database');
+const { initDatabase, DB_PATH } = require('./database');
 const teamRoutes = require('./routes/teams');
 const playerRoutes = require('./routes/players');
 const managerRoutes = require('./routes/managers');
 const aiRoutes = require('./routes/ai');
 const accountRoutes = require('./routes/accounts');
 const careerRoutes = require('./routes/careers');
+const { authenticate } = require('./services/auth');
 // const eventRoutes = require('./routes/events');
 // const leagueRoutes = require('./routes/leagues');
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,6 +21,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+app.use(authenticate);
 
 // Logging
 app.use((req, res, next) => {
@@ -62,7 +62,7 @@ async function start() {
         await initDatabase();
         app.listen(PORT, () => {
             console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-            console.log(`📊 Banco: ./dev.db`);
+            console.log(`📊 Banco: ${DB_PATH}`);
         });
     } catch (error) {
         console.error('❌ Erro ao iniciar servidor:', error);

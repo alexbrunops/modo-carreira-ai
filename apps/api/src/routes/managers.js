@@ -1,84 +1,91 @@
 const express = require('express');
 const router = express.Router();
-const { db, run, get, all, generateId } = require('../database');
+const { pick, insertRow, updateRow, missingFields, get, all, run } = require('./lib/crud');
 
-// GET - Listar técnicos
+// Tabela: football_managers (ver database.js)
+const FIELDS = ['career_id', 'football_team_id', 'name', 'nationality', 'age', 'salary', 'matches_managed', 'wins', 'draws', 'losses'];
+const REQUIRED = ['career_id', 'name', 'age'];
+const SELECT = `SELECT x.*, t.name AS team_name FROM football_managers x LEFT JOIN football_teams t ON x.football_team_id = t.id`;
+
+// GET - Listar (filtros opcionais: career_id, football_team_id)
 router.get('/', async (req, res) => {
     try {
-        const managers = await all(`
-            SELECT m.*, t.name as team_name 
-            FROM managers m
-            LEFT JOIN teams t ON m.id = t.manager_id
-            ORDER BY m.name
-        `);
-        res.json(managers);
+        const where = [];
+        const params = [];
+        for (const filter of ['career_id', 'football_team_id']) {
+            if (req.query[filter]) {
+                where.push(`x.${filter} = ?`);
+                params.push(req.query[filter]);
+            }
+        }
+        const rows = await all(
+            `${SELECT} ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY x.name`,
+            params
+        );
+        res.json(rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// GET - Buscar técnico por ID
+// GET - Buscar por nome
+// (precisa vir antes de /:id, senão o Express nunca chega aqui)
+router.get('/search/:name', async (req, res) => {
+    try {
+        const rows = await all(`${SELECT} WHERE x.name LIKE ? ORDER BY x.name`, [`%${req.params.name}%`]);
+        res.json(rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// GET - Buscar por ID
 router.get('/:id', async (req, res) => {
     try {
-        const manager = await get(`
-            SELECT m.*, t.name as team_name 
-            FROM managers m
-            LEFT JOIN teams t ON m.id = t.manager_id
-            WHERE m.id = ?
-        `, [req.params.id]);
-        
-        if (!manager) {
+        const row = await get(`${SELECT} WHERE x.id = ?`, [req.params.id]);
+        if (!row) {
             return res.status(404).json({ error: 'Técnico não encontrado' });
         }
-        res.json(manager);
+        res.json(row);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// POST - Criar técnico
+// POST - Criar
 router.post('/', async (req, res) => {
     try {
-        const { name, age, nationality, salary } = req.body;
-        const id = generateId();
-        
-        await run(`
-            INSERT INTO managers (id, name, age, nationality, salary)
-            VALUES (?, ?, ?, ?, ?)
-        `, [id, name, age, nationality, salary || null]);
-        
-        const manager = await get('SELECT * FROM managers WHERE id = ?', [id]);
-        res.status(201).json(manager);
+        const missing = missingFields(req.body, REQUIRED);
+        if (missing.length > 0) {
+            return res.status(400).json({ error: `Campos obrigatórios: ${missing.join(', ')}` });
+        }
+        const id = await insertRow('football_managers', pick(req.body, FIELDS));
+        const row = await get(`${SELECT} WHERE x.id = ?`, [id]);
+        res.status(201).json(row);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// PUT - Atualizar técnico
+// PUT - Atualizar (só os campos enviados)
 router.put('/:id', async (req, res) => {
     try {
-        const { name, age, nationality, salary } = req.body;
-        
-        await run(`
-            UPDATE managers 
-            SET name = ?, age = ?, nationality = ?, salary = ?, updated_at = datetime('now')
-            WHERE id = ?
-        `, [name, age, nationality, salary || null, req.params.id]);
-        
-        const manager = await get('SELECT * FROM managers WHERE id = ?', [req.params.id]);
-        if (!manager) {
+        const updates = pick(req.body, FIELDS.filter(f => f !== 'career_id'));
+        const found = await updateRow('football_managers', req.params.id, updates);
+        if (!found) {
             return res.status(404).json({ error: 'Técnico não encontrado' });
         }
-        res.json(manager);
+        const row = await get(`${SELECT} WHERE x.id = ?`, [req.params.id]);
+        res.json(row);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// DELETE - Remover técnico
+// DELETE - Remover
 router.delete('/:id', async (req, res) => {
     try {
-        const result = await run('DELETE FROM managers WHERE id = ?', [req.params.id]);
+        const result = await run('DELETE FROM football_managers WHERE id = ?', [req.params.id]);
         if (result.changes === 0) {
             return res.status(404).json({ error: 'Técnico não encontrado' });
         }

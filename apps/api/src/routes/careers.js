@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db, run, get, all, generateId } = require('../database');
+const { run, get, all } = require('../database');
 const Career = require('../models/Career')
 const FootballManager = require('../models/FootballManager')
 const FootballTeam = require('../models/FootballTeam')
@@ -45,6 +45,8 @@ router.get('/account/:accountId', async(req, res) => {
             SELECT *
             FROM careers c
             WHERE c.account_id = ?
+            ORDER BY c.is_active DESC, c.last_played DESC
+            LIMIT 1
         `, [accountId]);
 
         if (!career) {
@@ -56,83 +58,65 @@ router.get('/account/:accountId', async(req, res) => {
     }
 });
 
-// POST - Inserir career
-router.post('/', async(req, res) =>{
+// POST - Inserir career (cria carreira + treinador + time de uma vez)
+router.post('/', async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({ error: 'Faça login para criar uma carreira' });
+    }
+
+    const {
+        careerName = 'Nova Carreira',
+        sport = 'football',
+        gameName,
+        gameVersion,
+        mode,
+        userName,
+        userAge,
+        userNationality,
+        userSalary,
+        currency = 'BRL',
+        language = 'pt-BR',
+        useRealData = true,
+        teamName,
+        teamShortName,
+        teamCountry,
+        teamLeague,
+        teamValue,
+        teamTransferBudget,
+        teamSalaryBudget,
+        teamFormation
+    } = req.body;
+
+    const missing = [];
+    if (!careerName) missing.push('Nome da Carreira');
+    if (!gameName) missing.push('Nome do jogo');
+    if (!gameVersion) missing.push('Versão do jogo');
+    if (!userName) missing.push(mode === 'player' ? 'Nome do Jogador' : 'Nome do Treinador');
+    if (!userAge) missing.push('Idade');
+    if (!teamName) missing.push('Nome do Time');
+    if (!teamCountry) missing.push('País do Time');
+    if (!teamLeague) missing.push('Liga');
+    if (missing.length > 0) {
+        return res.status(400).json({ error: `Campos obrigatórios: ${missing.join(', ')}` });
+    }
+
+    if (!['manager', 'player'].includes(mode)) {
+        return res.status(400).json({ error: 'Modo deve ser "manager" ou "player"' });
+    }
+    if (mode === 'player') {
+        return res.status(501).json({ error: 'O modo jogador ainda não está disponível' });
+    }
+
     try {
-        let { footballManager, footballTeam } = any;
-        const {
-            careerName = 'Nova Carreira',
-            sport,
-            gameName,
-            gameVersion,
-            mode,
-            userName,
-            userAge,
-            userNationality,
-            currency = 'BRL',
-            language = 'pt-BR',
-            useRealData = true,
-            teamName,
-            teamShortName,
-            teamCountry,
-            teamLeague,
-            teamValue,
-            teamTransferBudget
-        } = req.body;
-
-        if (!careerName) {
-            return res.status(400).json({ error: 'Nome da Carreira é obrigatório' });
+        const existing = await Career.search({ accountId: req.user.id, name: careerName, limit: 1 });
+        if (existing.length > 0) {
+            return res.status(409).json({ error: 'Já existe um modo carreira com este nome' });
         }
 
-        if (!sport) {
-            return res.status(400).json({ error: 'Esporte é obrigatório' });
-        }
+        await run('BEGIN');
 
-        if (!gameName) {
-            return res.status(400).json({ error: 'Nome do jogo é obrigatório' });
-        }
-
-        if (!gameVersion) {
-            return res.status(400).json({ error: 'Versão do Jogo é obrigatório' });
-        }
-
-        if (!mode || !['manager', 'player'].includes(mode)) {
-            return res.status(400).json({ 
-                error: 'Modo deve ser "manager" ou "player"' 
-            });
-        }
-
-        if (!userName) {
-            return res.status(400).json({ error: `Nome do ${mode === 'manager' ? 'Treinador' : 'Jogador'} é obrigatório` });
-        }
-
-        if (!teamName) {
-            return res.status(400).json({ error: 'Nome do Time é obrigatório' });
-        }
-
-        if (!teamLeague) {
-            return res.status(400).json({ error: 'Liga é obrigatório' });
-        }
-
-        if (!careerName) {
-            return res.status(400).json({ error: 'Nome da Carreira é obrigatório' });
-        }
-
-        // Verificar se já existe uma career com este nome para o usuário
-        // const existing = await Career.search({
-        //     userId: req.user.id,
-        //     name: careerName
-        // });
-
-        // if (existing.length > 0) {
-        //     return res.status(409).json({ 
-        //         error: 'Já existe um modo carreira com este nome' 
-        //     });
-        // }
-
-        // Criar carreira
         const career = new Career({
-            accountId: req.body.accountId,
+            accountId: req.user.id,
             name: careerName,
             sport,
             gameName,
@@ -142,54 +126,66 @@ router.post('/', async(req, res) =>{
             language,
             useRealData
         });
-
         await career.save();
 
-        if (mode === 'manager') {
-            // Criar treinador
-            footballManager = new FootballManager({
-                careerId: career.id,
-                name: userName,
-                nationality: userNationality,
-                age: userAge,
-                salary
-            });
-            footballManager.save();
-        } else if (mode === 'player') {
-            // Criar jogador
-        } else {
-            res.status(500).json({
-                error: 'Modo de jogo precisa ser Treinador ou Jogador'
-            });
-        }
+        const footballManager = new FootballManager({
+            careerId: career.id,
+            name: userName,
+            nationality: userNationality,
+            age: userAge,
+            salary: userSalary
+        });
+        await footballManager.save();
 
-        // Criar time
-        footballTeam = new FootballTeam({
+        const footballTeam = new FootballTeam({
             careerId: career.id,
             footballManagerId: footballManager.id,
             name: teamName,
             shortName: teamShortName,
             country: teamCountry,
             league: teamLeague,
-            valur: teamValue,
-            transferBudget: teamTransferBudget
+            value: teamValue,
+            transferBudget: teamTransferBudget,
+            salaryBudget: teamSalaryBudget,
+            formation: teamFormation
         });
-
-        footballTeam.save();
+        await footballTeam.save();
 
         footballManager.footballTeamId = footballTeam.id;
-        footballManager.save();
+        await footballManager.save();
+
+        await run('COMMIT');
 
         res.status(201).json({
             message: 'Carreira criada com sucesso',
-            career
+            career,
+            footballManager,
+            footballTeam
         });
-
     } catch (error) {
-        console.log('Erro ao criar carreira: ', error);
+        await run('ROLLBACK').catch(() => {});
+        console.error('Erro ao criar carreira:', error);
         res.status(500).json({ error: error.message });
     }
 });
+
+// Só o dono da carreira pode alterá-la ou apagá-la
+async function loadOwnedCareer(req, res) {
+    if (!req.user) {
+        res.status(401).json({ error: 'Faça login para continuar' });
+        return null;
+    }
+    const career = await Career.findById(req.params.id);
+    if (!career) {
+        res.status(404).json({ error: 'Modo carreira não encontrado' });
+        return null;
+    }
+    if (career.accountId !== req.user.id) {
+        res.status(403).json({ error: 'Acesso negado' });
+        return null;
+    }
+    return career;
+}
 
 // ============================================
 // PUT /api/careers/:id
@@ -197,16 +193,8 @@ router.post('/', async(req, res) =>{
 // ============================================
 router.put('/:id', async (req, res) => {
     try {
-        const career = await Career.findById(req.params.id);
-
-        if (!career) {
-            return res.status(404).json({ error: 'Modo carreira não encontrado' });
-        }
-
-        // Verificar permissão
-        if (career.userId !== req.user?.id && !req.user?.isAdmin) {
-            return res.status(403).json({ error: 'Acesso negado' });
-        }
+        const career = await loadOwnedCareer(req, res);
+        if (!career) return;
 
         const {
             name,
@@ -214,24 +202,17 @@ router.put('/:id', async (req, res) => {
             gameName,
             gameVersion,
             mode,
-            protagonistType,
-            protagonistId,
-            teamId,
             currency,
             language,
             useRealData,
             isActive
         } = req.body;
 
-        // Atualizar campos
         if (name !== undefined) career.name = name;
         if (sport !== undefined) career.sport = sport;
         if (gameName !== undefined) career.gameName = gameName;
         if (gameVersion !== undefined) career.gameVersion = gameVersion;
         if (mode !== undefined) career.mode = mode;
-        if (protagonistType !== undefined) career.protagonistType = protagonistType;
-        if (protagonistId !== undefined) career.protagonistId = protagonistId;
-        if (teamId !== undefined) career.teamId = teamId;
         if (currency !== undefined) career.currency = currency;
         if (language !== undefined) career.language = language;
         if (useRealData !== undefined) career.useRealData = useRealData ? 1 : 0;
@@ -243,7 +224,6 @@ router.put('/:id', async (req, res) => {
             message: 'Modo carreira atualizado com sucesso',
             career
         });
-
     } catch (error) {
         console.error('Erro ao atualizar career:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
@@ -252,36 +232,27 @@ router.put('/:id', async (req, res) => {
 
 // ============================================
 // DELETE /api/careers/:id
-// Deletar career
+// Deletar career (treinador, time e jogadores saem junto, via ON DELETE CASCADE)
 // ============================================
 router.delete('/:id', async (req, res) => {
     try {
-        const career = await Career.findById(req.params.id);
-
-        if (!career) {
-            return res.status(404).json({ error: 'Modo carreira não encontrado' });
-        }
-
-        // Verificar permissão
-        if (career.userId !== req.user?.id && !req.user?.isAdmin) {
-            return res.status(403).json({ error: 'Acesso negado' });
-        }
+        const career = await loadOwnedCareer(req, res);
+        if (!career) return;
 
         await career.delete();
 
         // Se deletou a career ativa, ativar a mais recente
         if (career.isActive) {
-            const activeCareers = await Career.findByUserId(career.userId, { activeOnly: true, limit: 1 });
-            if (activeCareers.length > 0) {
-                await activeCareers[0].setActive(true);
+            const [latest] = await Career.findByAccountId(career.accountId, { limit: 1 });
+            if (latest) {
+                await latest.setActive(true);
             }
         }
 
-        res.json({ 
+        res.json({
             message: 'Modo carreira deletado com sucesso',
             deletedId: req.params.id
         });
-
     } catch (error) {
         console.error('Erro ao deletar career:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
@@ -289,29 +260,28 @@ router.delete('/:id', async (req, res) => {
 });
 
 // ============================================
-// DELETE /api/careers/user/:userId
-// Deletar todas as careers de um usuário
+// DELETE /api/careers/account/:accountId
+// Deletar todas as careers de uma conta
 // ============================================
-router.delete('/user/:userId', async (req, res) => {
+router.delete('/account/:accountId', async (req, res) => {
     try {
-        const { userId } = req.params;
+        const { accountId } = req.params;
 
-        // Verificar permissão
-        if (userId !== req.user?.id && !req.user?.isAdmin) {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Faça login para continuar' });
+        }
+        if (accountId !== req.user.id) {
             return res.status(403).json({ error: 'Acesso negado' });
         }
 
-        const count = await Career.countByUserId(userId);
-        const deleted = await Career.deleteByUserId(userId);
+        const deleted = await Career.deleteByAccountId(accountId);
 
         res.json({
             message: `${deleted} modo(s) carreira deletado(s) com sucesso`,
-            deleted: deleted,
-            total: count
+            deleted
         });
-
     } catch (error) {
-        console.error('Erro ao deletar careers do usuário:', error);
+        console.error('Erro ao deletar careers da conta:', error);
         res.status(500).json({ error: 'Erro interno do servidor' });
     }
 });
